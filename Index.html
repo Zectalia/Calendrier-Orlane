@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier de l'Avent d'Orlane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #87CEEB, #B0E2FF, #E6F2FF, #B0E2FF, #87CEEB);
+            color: #1E3A8A;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Neige accumulée */
+        .snow-accumulation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(to top, #E8F4F8, #FFFFFF);
+            z-index: 2;
+            pointer-events: none;
+            transition: height 2s ease-in-out;
+        }
+        
+        .snow-layer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            border-radius: 50% 50% 0 0;
+            opacity: 0.9;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 20px rgba(135, 206, 235, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            background: linear-gradient(45deg, #1E3A8A, #3B82F6, #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #3B82F6;
+            font-weight: 500;
+        }
+        
+        .calendar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Disposition calendrier réel */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .day {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #3B82F6, #60A5FA, #93C5FD);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: visible;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .day:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 20px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(145deg, #60A5FA, #93C5FD, #BFDBFE);
+        }
+        
+        .day::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        
+        .day:hover::before {
+            opacity: 1;
+        }
+        
+        .locked {
+            background: linear-gradient(145deg, #93C5FD, #BFDBFE, #E0F2FE);
+            cursor: not-allowed;
+            color: #6B7280;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .locked:hover {
+            transform: none;
+            box-shadow: 0 6px 12px rgba(147, 197, 253, 0.3);
+        }
+        
+        .locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 1.2rem;
+            bottom: 8px;
+            right: 8px;
+            opacity: 0.7;
+        }
+        
+        .today {
+            background: linear-gradient(145deg, #06B6D4, #22D3EE, #67E8F9);
+            animation: pulse 2s infinite;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
+        }
+        
+        .emoji {
+            position: absolute;
+            font-size: 1.3rem;
+            top: 8px;
+            right: 8px;
+            opacity: 0.9;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Animation explosion de cœurs */
+        .heart-explosion-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .heart-particle {
+            position: absolute;
+            font-size: 1.5rem;
+            pointer-events: none;
+            z-index: 1001;
+            animation: heartFloat 1.5s ease-out forwards;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        @keyframes heartFloat {
+            0% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--tx-end), var(--ty-end)) scale(0.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Flocons de neige améliorés */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: #FFFFFF;
+            font-size: 1rem;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 1;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+        
+        .snowflake.small { font-size: 0.8rem; opacity: 0.7; }
+        .snowflake.medium { font-size: 1.2rem; opacity: 0.8; }
+        .snowflake.large { font-size: 1.5rem; opacity: 0.9; }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(135, 206, 235, 0.9);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #BFDBFE, #E0F2FE, #FFFFFF);
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 101;
+        }
+        
+        .modal h2 {
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            color: #1E3A8A;
+            background: linear-gradient(45deg, #1E3A8A, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .modal p {
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #1E40AF;
+            font-weight: 500;
+        }
+        
+        .modal button {
+            background: linear-gradient(45deg, #3B82F6, #60A5FA);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .modal button:hover {
+            background: linear-gradient(45deg, #60A5FA, #93C5FD);
+            transform: scale(1.08);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.6);
+        }
+        
+        /* Contrôles musique */
+        .music-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .music-btn {
+            background: linear-gradient(45deg, #3B82F6, #60A5FA);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+        
+        .music-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #60A5FA, #93C5FD);
+        }
+        
+        .volume-slider {
+            width: 80px;
+            height: 5px;
+            background: #E0F2FE;
+            border-radius: 10px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .volume-slider:hover {
+            opacity: 1;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 1rem;
+            color: #3B82F6;
+            font-weight: 500;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            
+            h1 {
+                font-size: 2.3rem;
+            }
+            
+            .music-controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px;
+            }
+            
+            .day {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .calendar {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .day {
+                font-size: 1.4rem;
+            }
+            
+            .emoji {
+                font-size: 1rem;
+                top: 5px;
+                right: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Neige accumulée -->
+    <div class="snow-accumulation" id="snow-accumulation"></div>
+    
+    <header>
+        <h1>Calendrier de l'Avent d'Orlane</h1>
+        <p class="subtitle">Chaque jour, une nouvelle surprise bleue t'attend jusqu'à Noël !</p>
+        <p class="subtitle">✨ 24 jours de magie bleue ✨</p>
+    </header>
+    
+    <div class="calendar-container">
+        <div class="calendar" id="calendar">
+            <!-- Les cases seront générées par JavaScript dans l'ordre -->
+        </div>
+    </div>
+    
+    <!-- Contrôles musique -->
+    <div class="music-controls">
+        <button class="music-btn" id="play-btn">▶️</button>
+        <button class="music-btn" id="pause-btn">⏸️</button>
+        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volume-slider">
+    </div>
+    
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Jour <span id="day-number">1</span></h2>
+            <p id="modal-message">Vous avez ouvert la case du jour !</p>
+            <button id="modal-button">Fermer</button>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Calendrier spécialement créé pour Orlane - Que la magie bleue de Noël t'illumine ! 💙✨</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendar = document.getElementById('calendar');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalButton = document.getElementById('modal-button');
+            const dayNumber = document.getElementById('day-number');
+            const snowAccumulation = document.getElementById('snow-accumulation');
+            
+            // Date actuelle
+            const today = new Date();
+            const currentDay = today.getDate();
+            const currentMonth = today.getMonth() + 1; // Janvier = 0
+            
+            // Variables pour la neige
+            let snowLevel = 0;
+            let maxSnowHeight = 100; // Hauteur maximale en pixels
+            let snowInterval;
+            
+            // Messages personnalisés pour Orlane avec thème bleu
+            const dayMessages = [
+                "Le compte à rebours bleu commence ! Prête pour l'aventure magique, Orlane ? 💙",
+                "Comme l'océan est profond, ton cœur est rempli de bonté et de douceur ! 🌊",
+                "Que la magie bleue de Noël illumine ton sourire aujourd'hui ! ✨",
+                "Ton cœur généreux brille comme les plus belles vagues bleues ! 💎",
+                "Aujourd'hui, prends un moment pour toi, aussi paisible qu'un lac bleu tranquille.",
+                "Tu mérites toute la sérénité et la joie que le bleu peut t'apporter ! 🦋",
+                "Ton esprit créatif est aussi vaste et inspirant que le ciel bleu infini ! ☁️",
+                "Que cette journée bleue t'apporte des moments doux comme une brise marine ! 🌬️",
+                "Ton sourire est la plus belle étoile dans le ciel bleu de Noël ! ⭐",
+                "Aujourd'hui, souviens-toi à quel point tu es unique et précieuse ! 💙",
+                "Comme les nuances de bleu de l'océan, que cette journée soit pleine de découvertes ! 🐠",
+                "Ton énergie positive est aussi rafraîchissante qu'une belle journée d'été bleue ! ☀️",
+                "Prends le temps aujourd'hui de rêver parmi les nuages bleus ! 🌈",
+                "Tu es une perle rare dans l'océan de la vie, brillante et unique ! 🐚",
+                "Que la magie bleue de Noël comble tous tes souhaits les plus chers ! 🔮",
+                "Ton cœur généreux mérite tous les trésors de l'océan ! 💎",
+                "Aujourd'hui, sois fière de la personne merveilleuse que tu es ! 👑",
+                "Que cette journée soit douce et paisible comme une mer d'huile bleue ! ⛵",
+                "Ton rire est la plus belle mélodie des vagues bleues ! 🎵",
+                "N'oublie jamais à quel point tu es spéciale, unique et bleue, Orlane ! 💫",
+                "L'excitation monte ! Noël approche à grands pas dans un tourbillon bleu ! 🌪️",
+                "Demain sera magique - prépare-toi pour des moments bleus inoubliables ! 🎁",
+                "La veille de Noël... que la magie bleue opère dans ton cœur ! ❄️",
+                "Joyeux Noël Orlane ! Que cette journée bleue soit remplie d'amour, de rires et de moments précieux avec tes proches ! 💙🎄✨"
+            ];
+            
+            // URLs pour chaque jour
+            const dayLinks = [
+                "https://example.com/day1",
+                "https://example.com/day2",
+                "https://example.com/day3",
+                "https://example.com/day4",
+                "https://example.com/day5",
+                "https://example.com/day6",
+                "https://example.com/day7",
+                "https://example.com/day8",
+                "https://example.com/day9",
+                "https://example.com/day10",
+                "https://example.com/day11",
+                "https://example.com/day12",
+                "https://example.com/day13",
+                "https://example.com/day14",
+                "https://example.com/day15",
+                "https://example.com/day16",
+                "https://example.com/day17",
+                "https://example.com/day18",
+                "https://example.com/day19",
+                "https://example.com/day20",
+                "https://example.com/day21",
+                "https://example.com/day22",
+                "https://example.com/day23",
+                "https://example.com/day24"
+            ];
+            
+            // Jours avec emojis spéciaux
+            const heartDays = [3, 6, 9, 13, 16, 19, 23];
+            const gameDays = [5, 10, 15];
+            
+            // Fonction pour créer des flocons de neige améliorés
+            function createSnowflakes() {
+                const snowflakeContainer = document.body;
+                const flakeCount = 80; // Plus de flocons
+                
+                for (let i = 0; i < flakeCount; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.classList.add('snowflake');
+                    
+                    // Tailles aléatoires
+                    const sizes = ['small', 'medium', 'large'];
+                    const size = sizes[Math.floor(Math.random() * sizes.length)];
+                    snowflake.classList.add(size);
+                    
+                    snowflake.innerHTML = '❄';
+                    snowflake.style.left = Math.random() * 100 + 'vw';
+                    snowflake.style.animationDuration = (Math.random() * 10 + 10) + 's'; // Plus lent
+                    snowflake.style.animationDelay = Math.random() * 10 + 's';
+                    snowflake.style.opacity = Math.random() * 0.8 + 0.2;
+                    
+                    // Mouvement latéral aléatoire
+                    snowflake.style.setProperty('--sway', (Math.random() * 100 - 50) + 'px');
+                    
+                    snowflakeContainer.appendChild(snowflake);
+                }
+            }
+            
+            // Fonction pour accumuler la neige
+            function accumulateSnow() {
+                if (snowLevel < maxSnowHeight) {
+                    snowLevel += 0.5; // Augmentation lente
+                    snowAccumulation.style.height = snowLevel + 'px';
+                    
+                    // Ajouter des couches de neige pour un effet plus réaliste
+                    if (snowLevel % 20 === 0) {
+                        addSnowLayer();
+                    }
+                }
+            }
+            
+            // Fonction pour ajouter une couche de neige
+            function addSnowLayer() {
+                const layer = document.createElement('div');
+                layer.classList.add('snow-layer');
+                layer.style.height = '10px';
+                layer.style.bottom = (snowLevel - 10) + 'px';
+                layer.style.opacity = (0.7 + Math.random() * 0.3);
+                snowAccumulation.appendChild(layer);
+            }
+            
+            // Démarrer l'accumulation de neige
+            function startSnowAccumulation() {
+                snowInterval = setInterval(accumulateSnow, 1000); // Toutes les secondes
+            }
+            
+            // Arrêter l'accumulation de neige
+            function stopSnowAccumulation() {
+                clearInterval(snowInterval);
+            }
+            
+            // Fonction pour créer l'explosion de cœurs
+            function createHeartExplosion(element) {
+                const heartContainer = document.createElement('div');
+                heartContainer.classList.add('heart-explosion-container');
+                
+                // Positionner le conteneur exactement sur la case
+                const rect = element.getBoundingClientRect();
+                heartContainer.style.position = 'fixed';
+                heartContainer.style.width = rect.width + 'px';
+                heartContainer.style.height = rect.height + 'px';
+                heartContainer.style.left = rect.left + 'px';
+                heartContainer.style.top = rect.top + 'px';
+                
+                for (let i = 0; i < 25; i++) {
+                    const heart = document.createElement('div');
+                    heart.classList.add('heart-particle');
+                    heart.innerHTML = '💖';
+                    
+                    // Direction aléatoire pour l'explosion
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance1 = 30 + Math.random() * 50;
+                    const distance2 = 80 + Math.random() * 70;
+                    
+                    const tx = Math.cos(angle) * distance1;
+                    const ty = Math.sin(angle) * distance1;
+                    const txEnd = Math.cos(angle) * distance2;
+                    const tyEnd = Math.sin(angle) * distance2;
+                    
+                    heart.style.setProperty('--tx', `${tx}px`);
+                    heart.style.setProperty('--ty', `${ty}px`);
+                    heart.style.setProperty('--tx-end', `${txEnd}px`);
+                    heart.style.setProperty('--ty-end', `${tyEnd}px`);
+                    
+                    heart.style.animationDelay = Math.random() * 0.3 + 's';
+                    
+                    heartContainer.appendChild(heart);
+                }
+                
+                document.body.appendChild(heartContainer);
+                
+                // Supprimer les cœurs après l'animation
+                setTimeout(() => {
+                    heartContainer.remove();
+                }, 2000);
+            }
+            
+            // Fonction pour ouvrir un jour avec animation
+            function openDayWithAnimation(day, element) {
+                // Désactiver le clic pendant l'animation
+                element.style.pointerEvents = 'none';
+                
+                // Créer l'explosion de cœurs
+                createHeartExplosion(element);
+                
+                // Animation de la case qui disparaît
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0)';
+                element.style.transition = 'all 0.8s ease';
+                
+                // Rediriger après l'animation
+                setTimeout(function() {
+                    // Stocker le jour ouvert dans le localStorage
+                    const openedDays = JSON.parse(localStorage.getItem('openedDays')) || [];
+                    if (!openedDays.includes(day)) {
+                        openedDays.push(day);
+                        localStorage.setItem('openedDays', JSON.stringify(openedDays));
+                    }
+                    
+                    // Rediriger vers le lien du jour
+                    window.location.href = dayLinks[day - 1];
+                }, 800);
+            }
+            
+            // Générer les cases du calendrier dans l'ordre (1 à 24)
+            for (let i = 1; i <= 24; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('day');
+                dayElement.textContent = i;
+                
+                // Ajouter les emojis spéciaux
+                if (heartDays.includes(i)) {
+                    const heartEmoji = document.createElement('span');
+                    heartEmoji.classList.add('emoji');
+                    heartEmoji.textContent = '💖';
+                    dayElement.appendChild(heartEmoji);
+                }
+                
+                if (gameDays.includes(i)) {
+                    const gameEmoji = document.createElement('span');
+                    gameEmoji.classList.add('emoji');
+                    gameEmoji.textContent = '🎮';
+                    dayElement.appendChild(gameEmoji);
+                }
+                
+                // Vérifier si le jour est déverrouillé
+                if (currentMonth === 12 && i <= currentDay) {
+                    dayElement.addEventListener('click', function() {
+                        openDayWithAnimation(i, dayElement);
+                    });
+                    
+                    // Marquer le jour actuel
+                    if (i === currentDay) {
+                        dayElement.classList.add('today');
+                    }
+                } else {
+                    dayElement.classList.add('locked');
+                }
+                
+                calendar.appendChild(dayElement);
+            }
+            
+            // Initialiser les effets de neige
+            createSnowflakes();
+            startSnowAccumulation();
+            
+            // Arrêter l'accumulation après 5 minutes pour éviter d'envahir l'écran
+            setTimeout(stopSnowAccumulation, 300000);
+            
+            // Fermer la modal
+            modalButton.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Fermer la modal en cliquant à l'extérieur
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Vérifier si nous sommes en décembre
+            if (currentMonth !== 12) {
+                const infoModal = document.createElement('div');
+                infoModal.classList.add('modal');
+                infoModal.style.display = 'flex';
+                infoModal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>Calendrier de l'Avent Bleu d'Orlane</h2>
+                        <p>Reviens en décembre, Orlane, pour découvrir chaque jour une nouvelle surprise bleue rien que pour toi ! 💙</p>
+                        <button onclick="this.parentElement.parentElement.style.display='none'">Fermer</button>
+                    </div>
+                `;
+                document.body.appendChild(infoModal);
+            }
+        });
+    </script>
+</body>
+</html>
