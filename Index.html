@@ -89,7 +89,6 @@
             z-index: 10;
         }
         
-        /* Disposition calendrier réel */
         .calendar {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -121,22 +120,6 @@
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 12px 20px rgba(59, 130, 246, 0.5);
             background: linear-gradient(145deg, #60A5FA, #93C5FD, #BFDBFE);
-        }
-        
-        .day::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        
-        .day:hover::before {
-            opacity: 1;
         }
         
         .locked {
@@ -176,7 +159,6 @@
             animation: float 3s ease-in-out infinite;
         }
         
-        /* Animation explosion de cœurs */
         .heart-explosion-container {
             position: absolute;
             top: 0;
@@ -199,18 +181,9 @@
         }
         
         @keyframes heartFloat {
-            0% {
-                transform: translate(-50%, -50%) scale(1) rotate(0deg);
-                opacity: 1;
-            }
-            50% {
-                transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg);
-                opacity: 0.8;
-            }
-            100% {
-                transform: translate(var(--tx-end), var(--ty-end)) scale(0.5) rotate(360deg);
-                opacity: 0;
-            }
+            0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg); opacity: 0.8; }
+            100% { transform: translate(var(--tx-end), var(--ty-end)) scale(0.5) rotate(360deg); opacity: 0; }
         }
         
         @keyframes pulse {
@@ -225,7 +198,6 @@
             100% { transform: translateY(0px); }
         }
         
-        /* Flocons de neige améliorés */
         .snowflake {
             position: fixed;
             top: -10px;
@@ -242,20 +214,10 @@
         .snowflake.large { font-size: 1.5rem; opacity: 0.9; }
         
         @keyframes fall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
         
         .modal {
@@ -320,7 +282,6 @@
             box-shadow: 0 6px 15px rgba(59, 130, 246, 0.6);
         }
         
-        /* Contrôles musique */
         .music-controls {
             position: fixed;
             bottom: 20px;
@@ -367,9 +328,7 @@
             transition: opacity 0.2s;
         }
         
-        .volume-slider:hover {
-            opacity: 1;
-        }
+        .volume-slider:hover { opacity: 1; }
         
         .volume-slider::-webkit-slider-thumb {
             appearance: none;
@@ -395,50 +354,21 @@
         }
         
         @media (max-width: 768px) {
-            .calendar {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
-            }
-            
-            h1 {
-                font-size: 2.3rem;
-            }
-            
-            .music-controls {
-                bottom: 10px;
-                right: 10px;
-                padding: 10px;
-            }
-            
-            .day {
-                font-size: 1.6rem;
-            }
+            .calendar { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            h1 { font-size: 2.3rem; }
+            .music-controls { bottom: 10px; right: 10px; padding: 10px; }
+            .day { font-size: 1.6rem; }
         }
         
         @media (max-width: 480px) {
-            .calendar {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .day {
-                font-size: 1.4rem;
-            }
-            
-            .emoji {
-                font-size: 1rem;
-                top: 5px;
-                right: 5px;
-            }
+            .calendar { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            h1 { font-size: 2rem; }
+            .day { font-size: 1.4rem; }
+            .emoji { font-size: 1rem; top: 5px; right: 5px; }
         }
     </style>
 </head>
 <body>
-    <!-- Neige accumulée -->
     <div class="snow-accumulation" id="snow-accumulation"></div>
     
     <header>
@@ -448,12 +378,9 @@
     </header>
     
     <div class="calendar-container">
-        <div class="calendar" id="calendar">
-            <!-- Les cases seront générées par JavaScript dans l'ordre -->
-        </div>
+        <div class="calendar" id="calendar"></div>
     </div>
     
-    <!-- Contrôles musique -->
     <div class="music-controls">
         <button class="music-btn" id="play-btn">▶️</button>
         <button class="music-btn" id="pause-btn">⏸️</button>
@@ -473,26 +400,59 @@
     </footer>
 
     <script>
+        // Protection anti-triche renforcée
+        function setupSecurity() {
+            const today = new Date();
+            const storedDate = localStorage.getItem('securityDate');
+            const firstVisit = localStorage.getItem('firstVisit');
+            
+            // Première visite - initialiser la sécurité
+            if (!firstVisit) {
+                localStorage.setItem('firstVisit', 'true');
+                localStorage.setItem('securityDate', today.getTime());
+                localStorage.setItem('installDate', today.getTime());
+                return true;
+            }
+            
+            // Vérifier si la date a été modifiée
+            if (storedDate) {
+                const lastDate = new Date(parseInt(storedDate));
+                if (today < lastDate) {
+                    // Triche détectée : retour dans le temps
+                    alert("Tentative de triche détectée ! Le calendrier a été réinitialisé.");
+                    localStorage.clear();
+                    setTimeout(() => location.reload(), 2000);
+                    return false;
+                }
+                
+                // Vérifier si on a sauté trop de jours
+                const dayDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+                if (dayDiff > 2) { // Plus de 2 jours sans connexion
+                    alert("Suspicion de triche : trop de jours passés sans connexion.");
+                    localStorage.clear();
+                    setTimeout(() => location.reload(), 2000);
+                    return false;
+                }
+            }
+            
+            // Mettre à jour la date de sécurité
+            localStorage.setItem('securityDate', today.getTime());
+            return true;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier la sécurité avant tout
+            if (!setupSecurity()) return;
+            
             const calendar = document.getElementById('calendar');
-            const modal = document.getElementById('modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalMessage = document.getElementById('modal-message');
-            const modalButton = document.getElementById('modal-button');
-            const dayNumber = document.getElementById('day-number');
             const snowAccumulation = document.getElementById('snow-accumulation');
             
-            // Date actuelle
+            // Date actuelle (sécurisée)
             const today = new Date();
             const currentDay = today.getDate();
-            const currentMonth = today.getMonth() + 1; // Janvier = 0
+            const currentMonth = today.getMonth() + 1;
             
-            // Variables pour la neige
-            let snowLevel = 0;
-            let maxSnowHeight = 100; // Hauteur maximale en pixels
-            let snowInterval;
-            
-            // Messages personnalisés pour Orlane avec thème bleu
+            // Messages personnalisés
             const dayMessages = [
                 "Le compte à rebours bleu commence ! Prête pour l'aventure magique, Orlane ? 💙",
                 "Comme l'océan est profond, ton cœur est rempli de bonté et de douceur ! 🌊",
@@ -520,104 +480,51 @@
                 "Joyeux Noël Orlane ! Que cette journée bleue soit remplie d'amour, de rires et de moments précieux avec tes proches ! 💙🎄✨"
             ];
             
-            // URLs pour chaque jour
+            // URLs pour chaque jour (à personnaliser)
             const dayLinks = [
-                "https://example.com/day1",
-                "https://example.com/day2",
-                "https://example.com/day3",
-                "https://example.com/day4",
-                "https://example.com/day5",
-                "https://example.com/day6",
-                "https://example.com/day7",
-                "https://example.com/day8",
-                "https://example.com/day9",
-                "https://example.com/day10",
-                "https://example.com/day11",
-                "https://example.com/day12",
-                "https://example.com/day13",
-                "https://example.com/day14",
-                "https://example.com/day15",
-                "https://example.com/day16",
-                "https://example.com/day17",
-                "https://example.com/day18",
-                "https://example.com/day19",
-                "https://example.com/day20",
-                "https://example.com/day21",
-                "https://example.com/day22",
-                "https://example.com/day23",
-                "https://example.com/day24"
+                "https://example.com/day1", "https://example.com/day2", "https://example.com/day3",
+                "https://example.com/day4", "https://example.com/day5", "https://example.com/day6",
+                "https://example.com/day7", "https://example.com/day8", "https://example.com/day9",
+                "https://example.com/day10", "https://example.com/day11", "https://example.com/day12",
+                "https://example.com/day13", "https://example.com/day14", "https://example.com/day15",
+                "https://example.com/day16", "https://example.com/day17", "https://example.com/day18",
+                "https://example.com/day19", "https://example.com/day20", "https://example.com/day21",
+                "https://example.com/day22", "https://example.com/day23", "https://example.com/day24"
             ];
             
             // Jours avec emojis spéciaux
             const heartDays = [3, 6, 9, 13, 16, 19, 23];
             const gameDays = [5, 10, 15];
             
-            // Fonction pour créer des flocons de neige améliorés
+            // Fonctions pour la neige
             function createSnowflakes() {
-                const snowflakeContainer = document.body;
-                const flakeCount = 80; // Plus de flocons
-                
+                const flakeCount = 80;
                 for (let i = 0; i < flakeCount; i++) {
                     const snowflake = document.createElement('div');
                     snowflake.classList.add('snowflake');
-                    
-                    // Tailles aléatoires
                     const sizes = ['small', 'medium', 'large'];
-                    const size = sizes[Math.floor(Math.random() * sizes.length)];
-                    snowflake.classList.add(size);
-                    
+                    snowflake.classList.add(sizes[Math.floor(Math.random() * sizes.length)]);
                     snowflake.innerHTML = '❄';
                     snowflake.style.left = Math.random() * 100 + 'vw';
-                    snowflake.style.animationDuration = (Math.random() * 10 + 10) + 's'; // Plus lent
+                    snowflake.style.animationDuration = (Math.random() * 10 + 10) + 's';
                     snowflake.style.animationDelay = Math.random() * 10 + 's';
                     snowflake.style.opacity = Math.random() * 0.8 + 0.2;
-                    
-                    // Mouvement latéral aléatoire
-                    snowflake.style.setProperty('--sway', (Math.random() * 100 - 50) + 'px');
-                    
-                    snowflakeContainer.appendChild(snowflake);
+                    document.body.appendChild(snowflake);
                 }
             }
             
-            // Fonction pour accumuler la neige
+            let snowLevel = 0;
             function accumulateSnow() {
-                if (snowLevel < maxSnowHeight) {
-                    snowLevel += 0.5; // Augmentation lente
+                if (snowLevel < 100) {
+                    snowLevel += 0.5;
                     snowAccumulation.style.height = snowLevel + 'px';
-                    
-                    // Ajouter des couches de neige pour un effet plus réaliste
-                    if (snowLevel % 20 === 0) {
-                        addSnowLayer();
-                    }
                 }
             }
             
-            // Fonction pour ajouter une couche de neige
-            function addSnowLayer() {
-                const layer = document.createElement('div');
-                layer.classList.add('snow-layer');
-                layer.style.height = '10px';
-                layer.style.bottom = (snowLevel - 10) + 'px';
-                layer.style.opacity = (0.7 + Math.random() * 0.3);
-                snowAccumulation.appendChild(layer);
-            }
-            
-            // Démarrer l'accumulation de neige
-            function startSnowAccumulation() {
-                snowInterval = setInterval(accumulateSnow, 1000); // Toutes les secondes
-            }
-            
-            // Arrêter l'accumulation de neige
-            function stopSnowAccumulation() {
-                clearInterval(snowInterval);
-            }
-            
-            // Fonction pour créer l'explosion de cœurs
+            // Fonction explosion de cœurs
             function createHeartExplosion(element) {
                 const heartContainer = document.createElement('div');
                 heartContainer.classList.add('heart-explosion-container');
-                
-                // Positionner le conteneur exactement sur la case
                 const rect = element.getBoundingClientRect();
                 heartContainer.style.position = 'fixed';
                 heartContainer.style.width = rect.width + 'px';
@@ -629,69 +536,54 @@
                     const heart = document.createElement('div');
                     heart.classList.add('heart-particle');
                     heart.innerHTML = '💖';
-                    
-                    // Direction aléatoire pour l'explosion
                     const angle = Math.random() * Math.PI * 2;
-                    const distance1 = 30 + Math.random() * 50;
-                    const distance2 = 80 + Math.random() * 70;
-                    
-                    const tx = Math.cos(angle) * distance1;
-                    const ty = Math.sin(angle) * distance1;
-                    const txEnd = Math.cos(angle) * distance2;
-                    const tyEnd = Math.sin(angle) * distance2;
-                    
+                    const tx = Math.cos(angle) * (30 + Math.random() * 50);
+                    const ty = Math.sin(angle) * (30 + Math.random() * 50);
+                    const txEnd = Math.cos(angle) * (80 + Math.random() * 70);
+                    const tyEnd = Math.sin(angle) * (80 + Math.random() * 70);
                     heart.style.setProperty('--tx', `${tx}px`);
                     heart.style.setProperty('--ty', `${ty}px`);
                     heart.style.setProperty('--tx-end', `${txEnd}px`);
                     heart.style.setProperty('--ty-end', `${tyEnd}px`);
-                    
                     heart.style.animationDelay = Math.random() * 0.3 + 's';
-                    
                     heartContainer.appendChild(heart);
                 }
                 
                 document.body.appendChild(heartContainer);
-                
-                // Supprimer les cœurs après l'animation
-                setTimeout(() => {
-                    heartContainer.remove();
-                }, 2000);
+                setTimeout(() => heartContainer.remove(), 2000);
             }
             
-            // Fonction pour ouvrir un jour avec animation
+            // Fonction pour ouvrir un jour (sécurisée)
             function openDayWithAnimation(day, element) {
-                // Désactiver le clic pendant l'animation
+                // Dernière vérification de sécurité
+                const today = new Date();
+                if (currentMonth !== 12 || day > currentDay) {
+                    alert("Ce jour n'est pas encore disponible ! Reviens le " + day + " décembre.");
+                    return;
+                }
+                
                 element.style.pointerEvents = 'none';
-                
-                // Créer l'explosion de cœurs
                 createHeartExplosion(element);
-                
-                // Animation de la case qui disparaît
                 element.style.opacity = '0';
                 element.style.transform = 'scale(0)';
                 element.style.transition = 'all 0.8s ease';
                 
-                // Rediriger après l'animation
                 setTimeout(function() {
-                    // Stocker le jour ouvert dans le localStorage
                     const openedDays = JSON.parse(localStorage.getItem('openedDays')) || [];
                     if (!openedDays.includes(day)) {
                         openedDays.push(day);
                         localStorage.setItem('openedDays', JSON.stringify(openedDays));
                     }
-                    
-                    // Rediriger vers le lien du jour
                     window.location.href = dayLinks[day - 1];
                 }, 800);
             }
             
-            // Générer les cases du calendrier dans l'ordre (1 à 24)
+            // Générer le calendrier
             for (let i = 1; i <= 24; i++) {
                 const dayElement = document.createElement('div');
                 dayElement.classList.add('day');
                 dayElement.textContent = i;
                 
-                // Ajouter les emojis spéciaux
                 if (heartDays.includes(i)) {
                     const heartEmoji = document.createElement('span');
                     heartEmoji.classList.add('emoji');
@@ -706,16 +598,11 @@
                     dayElement.appendChild(gameEmoji);
                 }
                 
-                // Vérifier si le jour est déverrouillé
                 if (currentMonth === 12 && i <= currentDay) {
                     dayElement.addEventListener('click', function() {
                         openDayWithAnimation(i, dayElement);
                     });
-                    
-                    // Marquer le jour actuel
-                    if (i === currentDay) {
-                        dayElement.classList.add('today');
-                    }
+                    if (i === currentDay) dayElement.classList.add('today');
                 } else {
                     dayElement.classList.add('locked');
                 }
@@ -723,24 +610,10 @@
                 calendar.appendChild(dayElement);
             }
             
-            // Initialiser les effets de neige
+            // Initialiser les effets
             createSnowflakes();
-            startSnowAccumulation();
-            
-            // Arrêter l'accumulation après 5 minutes pour éviter d'envahir l'écran
-            setTimeout(stopSnowAccumulation, 300000);
-            
-            // Fermer la modal
-            modalButton.addEventListener('click', function() {
-                modal.style.display = 'none';
-            });
-            
-            // Fermer la modal en cliquant à l'extérieur
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
+            const snowInterval = setInterval(accumulateSnow, 1000);
+            setTimeout(() => clearInterval(snowInterval), 300000);
             
             // Vérifier si nous sommes en décembre
             if (currentMonth !== 12) {
