@@ -451,33 +451,6 @@
             const currentDay = today.getDate();
             const currentMonth = today.getMonth() + 1;
             
-            // Messages personnalisés
-            const dayMessages = [
-                "Décembre commence ! Je ne sais pas il sera à la hauteur, mais ce calendrier est spécialement pour toi !💙",
-                "Comme l'océan est profond, ton cœur est rempli de bonté et de douceur ! 🌊",
-                "Que la magie bleue de Noël illumine ton sourire aujourd'hui ! ✨",
-                "Ton cœur généreux brille comme les plus belles vagues bleues ! 💎",
-                "Aujourd'hui, prends un moment pour toi, aussi paisible qu'un lac bleu tranquille.",
-                "Tu mérites toute la sérénité et la joie que le bleu peut t'apporter ! 🦋",
-                "Ton esprit créatif est aussi vaste et inspirant que le ciel bleu infini ! ☁️",
-                "Que cette journée bleue t'apporte des moments doux comme une brise marine ! 🌬️",
-                "Ton sourire est la plus belle étoile dans le ciel bleu de Noël ! ⭐",
-                "Aujourd'hui, souviens-toi à quel point tu es unique et précieuse ! 💙",
-                "Comme les nuances de bleu de l'océan, que cette journée soit pleine de découvertes ! 🐠",
-                "Ton énergie positive est aussi rafraîchissante qu'une belle journée d'été bleue ! ☀️",
-                "Prends le temps aujourd'hui de rêver parmi les nuages bleus ! 🌈",
-                "Tu es une perle rare dans l'océan de la vie, brillante et unique ! 🐚",
-                "Que la magie bleue de Noël comble tous tes souhaits les plus chers ! 🔮",
-                "Ton cœur généreux mérite tous les trésors de l'océan ! 💎",
-                "Aujourd'hui, sois fière de la personne merveilleuse que tu es ! 👑",
-                "Que cette journée soit douce et paisible comme une mer d'huile bleue ! ⛵",
-                "Ton rire est la plus belle mélodie des vagues bleues ! 🎵",
-                "N'oublie jamais à quel point tu es spéciale, unique et bleue, Orlane ! 💫",
-                "L'excitation monte ! Noël approche à grands pas dans un tourbillon bleu ! 🌪️",
-                "Demain sera magique - prépare-toi pour des moments bleus inoubliables ! 🎁",
-                "La veille de Noël... que la magie bleue opère dans ton cœur ! ❄️",
-                "Joyeux Noël Orlane ! Que cette journée bleue soit remplie d'amour, de rires et de moments précieux avec tes proches ! 💙🎄✨"
-            ];
             
             // URLs pour chaque jour (à personnaliser)
             const dayLinks = [
@@ -494,6 +467,7 @@
             // Jours avec emojis spéciaux
             const heartDays = [3, 6, 9, 13, 16, 19, 23];
             const gameDays = [5, 10, 15];
+            const yoruDays = [24];
             
             // Fonctions pour la neige
             function createSnowflakes() {
@@ -595,6 +569,13 @@
                     gameEmoji.classList.add('emoji');
                     gameEmoji.textContent = '🎮';
                     dayElement.appendChild(gameEmoji);
+                }
+
+                    if (yoruDays.includes(i)) {
+                    const yoruEmoji = document.createElement('span');
+                    yoruEmoji.classList.add('emoji');
+                    yoruEmoji.textContent = '👥';
+                    dayElement.appendChild(yoruEmoji);
                 }
                 
                 if (currentMonth === 12 && i <= currentDay) {
